@@ -4,14 +4,9 @@ let aliasesList = {
     slot: 'slot',
     locale: 'locale',
     prop: 'prop',
-    style: 'style'
+    style: 'style',
+    alias: 'alias'
 };
-
-const styles = `
-    #target {
-        color: darkseagreen
-    }
-`
 
 const avatar = JSON.stringify({
     div: {
@@ -20,25 +15,27 @@ const avatar = JSON.stringify({
         },
         a: {
             props: {
-                href: "https://vk.com"
+                href: 'https://vk.com'
             },
             img: {
                 props: {
-                    src: 'prop:logoSrc'
+                    src: 'prop:logoSrc',
+                    'tab-index': 1
                 }
             },
-            style: {
+            p: ['locale:text', 'locale:title'],
+            div: 'slot:avatar',
+            ul: {
                 props: {
-                    type: 'text/css'
+                    class: 'names'
                 },
-                content: `
-                    .logoBlock { color: red; }
-                    .logoContent { 
-                        color: red; 
-                    }
-                `
+                li: {
+                    props: {
+                        class: 'list'
+                    },
+                    content: [0, 1, 2, 3, 4, 5]
+                }
             },
-            p: ['locale:text', 'locale:title']
         }
     }
 })
@@ -46,33 +43,40 @@ const avatar = JSON.stringify({
 const example = JSON.stringify([
     {
         form: {
-           props: {
-               type: 'submit'
-           },
-           p: 'locale:welcome',
-           Avatar: {
-               slots: {
-                   'slot:block': {
-                       div: 'Hello!'
-                   }
-               }
-           }
+            props: {
+                type: 'submit'
+            },
+            p: 'locale:welcome',
+            Avatar: {
+                props: {
+                    'prop:logoSrc': 'http://vk.com/img.png'
+                },
+                slots: {
+                    'slot:avatar': {
+                        Avatar: {
+                            slots: {
+                                'slot:avatar': {
+                                    div: 'locale:welcome'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 ])
-
-const editAliasesList = (list) => {
-    aliasesList = { ...aliasesList, ...list };
-}
 
 const getFirstLetter = (str) => str.substr(0, 1);
 const isComponent = (name) => getFirstLetter(name) === getFirstLetter(name).toUpperCase();
 
 const parseParams = (params) => {
-    if (typeof params === 'string') {
+    const type = typeof params;
+
+    if (type === 'string' || type === 'number') {
         return {
             props: null,
-            content: params
+            content: params.toString()
         }
     } else if (Array.isArray(params)) {
         return {
@@ -105,6 +109,8 @@ const createElement = (tag, params) => {
 
 const addProps = (element, props) => {
     for (const prop in props) {
+        if (props[prop] == null) throw new Error(`Invalid prop value. The prop value must be a string or number. Error: ${prop}: ${props[prop]}`);
+
         element.setAttribute(prop.toString().toLowerCase().trim(), props[prop].toString().trim());
     }
 }
@@ -145,27 +151,32 @@ const hasAlias = (alias) => {
     if (value) return !!aliasesList[value[1]];
 }
 
-const addAliases = (object, replacer) => {
-    const clonedObject = JSON.parse(object);
+const addAliases = (object, replacer, excludeDelete = []) => {
+    try {
+        const clonedObject = JSON.parse(object);
 
-    const replaceValue = (object, replacer) => {
-        for (let prop in object) {
-            const value = object[prop];
+        const replaceValue = (object, replacer) => {
+            for (let prop in object) {
+                const value = object[prop];
 
-            if (typeof value !== "string") {
-                replaceValue(value, replacer);
-            } else {
-                if (hasAlias(value)) {
-                    const replaceValue = replacer[value];
-                    if (replaceValue) object[prop] = replaceValue;
+                if (typeof value !== "string") {
+                    replaceValue(value, replacer);
+                } else {
+                    if (hasAlias(value)) {
+                        const replacedValue = replacer[value];
+
+                        if (replacedValue) object[prop] = replacedValue
+                    }
                 }
             }
-        }
-    };
+        };
 
-    replaceValue(clonedObject, replacer);
+        replaceValue(clonedObject, replacer);
 
-    return clonedObject;
+        return clonedObject;
+    } catch (e) {
+        throw new Error(`Invalid JSON. Error message: ${e}`)
+    }
 };
 
 const addComponent = (element, name, props) => {
@@ -233,5 +244,5 @@ const registerComponent = (name, content, aliases) => {
     components[name] = JSON.stringify(addAliases(content, aliases));
 }
 
-registerComponent('Avatar', avatar, { 'locale:text': 'Hi!', 'locale:title': 'Hello!', 'style:main': styles });
-render(example, { 'locale:block': 'Block', 'locale:text': 'Hi!', 'locale:title': 'Hello!' });
+registerComponent('Avatar', avatar, { 'locale:text': 'Hi!', 'locale:title': 'Hello!' });
+render(example, { 'locale:block': 'Block', 'locale:text': 'Hi!', 'locale:title': 'Hello!', 'locale:welcome': 'Welcome!' });
