@@ -3,8 +3,15 @@ const components = {};
 let aliasesList = {
     slot: 'slot',
     locale: 'locale',
-    prop: 'prop'
+    prop: 'prop',
+    style: 'style'
 };
+
+const styles = `
+    #target {
+        color: darkseagreen
+    }
+`
 
 const avatar = JSON.stringify({
     div: {
@@ -20,7 +27,17 @@ const avatar = JSON.stringify({
                     src: 'prop:logoSrc'
                 }
             },
-            div: 'slot:avatar',
+            style: {
+                props: {
+                    type: 'text/css'
+                },
+                content: `
+                    .logoBlock { color: red; }
+                    .logoContent { 
+                        color: red; 
+                    }
+                `
+            },
             p: ['locale:text', 'locale:title']
         }
     }
@@ -28,27 +45,19 @@ const avatar = JSON.stringify({
 
 const example = JSON.stringify([
     {
-        div: {
-            props: {
-                class: 'logoBlock'
-            },
-            a: {
-                props: {
-                    href: "https://vk.com"
-                },
-                p: ['locale:text', 'locale:title'],
-                Avatar: {
-                    slots: {
-                        'slot:avatar': {
-                            div: 'Hello!'
-                        }
-                    }
-                }
-            }
+        form: {
+           props: {
+               type: 'submit'
+           },
+           p: 'locale:welcome',
+           Avatar: {
+               slots: {
+                   'slot:block': {
+                       div: 'Hello!'
+                   }
+               }
+           }
         }
-    },
-    {
-        div: 'locale:block'
     }
 ])
 
@@ -100,8 +109,22 @@ const addProps = (element, props) => {
     }
 }
 
+const isElementTag = (element, tagName) => element.nodeName === tagName.toUpperCase();
+
+const addStyles = (element, styles) => {
+    if (isElementTag(element, 'style')) {
+        if (element.styleSheet) {
+            element.styleSheet.cssText = styles.trim();
+        } else {
+            element.appendChild(document.createTextNode(styles.trim()));
+        }
+    }
+}
+
 const addContent = (element, content) => {
-    if (typeof content === 'string') {
+    if (isElementTag(element, 'style')) {
+        addStyles(element, content);
+    } else if (typeof content === 'string') {
         element.innerHTML = content;
     } else if (Array.isArray(content)) {
         content.forEach((elem) => {
@@ -127,11 +150,13 @@ const addAliases = (object, replacer) => {
 
     const replaceValue = (object, replacer) => {
         for (let prop in object) {
-            if (typeof object[prop] !== "string") {
-                replaceValue(object[prop], replacer);
+            const value = object[prop];
+
+            if (typeof value !== "string") {
+                replaceValue(value, replacer);
             } else {
-                if (hasAlias(object[prop])) {
-                    const replaceValue = replacer[object[prop]];
+                if (hasAlias(value)) {
+                    const replaceValue = replacer[value];
                     if (replaceValue) object[prop] = replaceValue;
                 }
             }
@@ -208,5 +233,5 @@ const registerComponent = (name, content, aliases) => {
     components[name] = JSON.stringify(addAliases(content, aliases));
 }
 
-registerComponent('Avatar', avatar, { 'locale:text': 'Hi!', 'locale:title': 'Hello!' });
+registerComponent('Avatar', avatar, { 'locale:text': 'Hi!', 'locale:title': 'Hello!', 'style:main': styles });
 render(example, { 'locale:block': 'Block', 'locale:text': 'Hi!', 'locale:title': 'Hello!' });
