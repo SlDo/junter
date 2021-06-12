@@ -10,6 +10,23 @@
         "ecmaVersion": 12,
         "sourceType": "module"
     },
+    "overrides": [
+        {
+            "files": [
+                "**/*.spec.js",
+                "**/*.spec.jsx"
+            ],
+            "env": {
+                "jest": true
+            }
+        }
+    ],
     "rules": {
+        "no-use-before-define": ["error", { "variables": false }],
+        "no-param-reassign": "off",
+        "import/prefer-default-export": "off",
+        "import/no-cycle": [2, { "maxDepth": 1 }],
+        "max-len": "off",
+        "consistent-return": "off"
     }
 }
