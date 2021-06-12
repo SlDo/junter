@@ -2,7 +2,7 @@ import { throwError } from '../utils';
 import { hasAlias, aliasName } from './aliases';
 import { settings } from '../settings';
 
-export const addAliases = (object, replacer, removeUnnecessary = settings.removeUnnecessary, excludeDelete = []) => {
+export const addAliases = (object, replacer, excludeDelete = []) => {
   try {
     const clonedObject = JSON.parse(object);
 
@@ -14,7 +14,7 @@ export const addAliases = (object, replacer, removeUnnecessary = settings.remove
 
         if (hasAlias(value)) {
           const replacedValue = replacer[value];
-          if (!replacedValue && excludeDelete && !excludeDelete.includes(aliasName(value)) && removeUnnecessary) {
+          if (!replacedValue && excludeDelete && !excludeDelete.includes(aliasName(value)) && settings.removeUnnecessary) {
             if (Array.isArray(objectToReplace)) {
               return objectToReplace.splice(+prop, 1);
             }

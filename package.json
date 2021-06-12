@@ -27,8 +27,5 @@
     "jest": "^27.0.4",
     "webpack": "^4.46.0",
     "webpack-cli": "^4.7.2"
-  },
-  "dependencies": {
-    "esbuild": "^0.12.8"
   }
 }

@@ -1,12 +1,11 @@
 import { throwError, isComponent, isValidRoot } from '../../utils';
 import { addAliases } from '../addAliases';
 import { components } from './components.store';
-import { settings } from '../../settings';
 
-export const registerComponent = (name, content, aliases, removeUnnecessaryAlias = settings.removeUnnecessary) => {
+export const registerComponent = (name, content, aliases) => {
   throwError(!isComponent(name), 'The component name must start with a capital letter');
 
-  const component = addAliases(content, aliases, removeUnnecessaryAlias, ['slot', 'prop']);
+  const component = addAliases(content, aliases, ['slot', 'prop']);
 
   throwError(!isValidRoot(component), `${name} component object must be an object with once root element`);
 
